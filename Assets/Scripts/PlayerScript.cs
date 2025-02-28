@@ -214,7 +214,7 @@ public class PlayerScript : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, interactRange))
         {
-            Debug.Log("Hit object: " + hit.collider.gameObject.name);
+            //Debug.Log("Hit object: " + hit.collider.gameObject.name);
             if (Input.GetButton("Grab") && hit.collider.gameObject.GetComponent<Rigidbody>() != null)
             {
                 grabbedObj = hit.collider.gameObject;
