@@ -9,27 +9,49 @@ public class MechAi : MonoBehaviour
     public GameObject point1;
     public GameObject point2;
     public GameObject point3;
+    public float patrolCloseDist = 1f;
+    public float followCloseDist = 5f;
+    
+    public int state;
 
-    public float closeDist = 1f;
-
-    private int count;
+    private GameObject player;
+    private int patrolCount;
     // Start is called before the first frame update
     void Start()
     {
-        
+        player = GameManager.Instance.player;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (agent.remainingDistance <= closeDist)
+        //Patrol();
+        //Follow();
+
+        switch (state)
         {
-            count++;
-            if (count >= 3) count = 0;
-            
-            
+            case 0:
+                Hold();
+                break;
+            case 1:
+                Follow();
+                break;
+            case 2:
+                Patrol();
+                break;
         }
-        switch (count)
+    }
+
+    void Patrol()
+    {
+        if (agent.remainingDistance <= patrolCloseDist)
+        {
+            patrolCount++;
+            if (patrolCount >= 3) patrolCount = 0;
+
+
+        }
+        switch (patrolCount)
         {
             case 0:
                 agent.SetDestination(point1.transform.position);
@@ -40,7 +62,30 @@ public class MechAi : MonoBehaviour
             case 2:
                 agent.SetDestination(point3.transform.position);
                 break;
-                    
+
         }
+    }
+
+    void Follow()
+    {
+        if (Vector3.Distance(player.transform.position, transform.position) <= followCloseDist)
+        {
+            agent.ResetPath();
+        }
+        else
+        {
+            agent.SetDestination(player.transform.position);
+        }
+    }
+
+    void Hold()
+    {
+        agent.ResetPath();
+    }
+
+    public void StateSelect(int index)
+    {
+        state = index;
+        print(state);
     }
 }

@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
+using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEngine.UI.GridLayoutGroup;
+
 
 /// <summary>
 /// 
@@ -16,6 +16,12 @@ using static UnityEngine.UI.GridLayoutGroup;
 public class TestIk : MonoBehaviour
 {
     public GameObject otherLeg;
+    //public GameObject pelvisParent;
+    public GameObject rotFixParent;
+    public GameObject MechMainParent;
+    public bool isLeft;
+    public float parentBounceMult = 1f;
+    public float legLiftTiltMult = 5f;
     public bool legDown;
     public float legHeightAdjust = 1f;
     public float rayLength = 100f;
@@ -24,8 +30,10 @@ public class TestIk : MonoBehaviour
     public Vector2 footReach = new Vector2 (3f, 1f);
     public float moveFootSpeed = 1f;
     public float stepHeight = 1f;
+    //public AnimationCurve jiggleCurve;
 
     private TestIk otherLegScript;
+    private MechJiggle jiggleScript;
     private Vector3 oldStepLoc;
     private Vector3 newStepLoc;
     private Quaternion oldStepRot;
@@ -41,21 +49,21 @@ public class TestIk : MonoBehaviour
     private bool stepOnce;
     private Vector3 worldFootReachPos;
     private Vector3 worldFootReachNeg;
-
+    private float previousStepVal;
 
 
     void Start()
     {
         otherLegScript = otherLeg.GetComponent<TestIk>();
+        jiggleScript = MechMainParent.GetComponent<MechJiggle>();
         lastDirLoc = transform.position;
-        layerToIgnore = LayerMask.NameToLayer("Test");
+        layerToIgnore = LayerMask.NameToLayer("Mech");
         layerMask = ~(1 << layerToIgnore);
         StationaryStep();
         ikTip.transform.position = newStepLoc;
         foot.transform.localRotation = newStepRot;
         oldStepLoc = ikTip.transform.position;
         oldStepRot = ikTip.transform.rotation;
-        
     }
 
     // Update is called once per frame
@@ -76,6 +84,10 @@ public class TestIk : MonoBehaviour
         MoveFoot();
 
         Debugs();
+        //transform.rotation = Quaternion.Euler(parent.transform.rotation.x, parent.transform.rotation.y, parent.transform.rotation.z);
+        //print(pelvisParent.transform.localEulerAngles);
+
+        LegPointDown();
     }
 
     void Debugs()
@@ -154,7 +166,21 @@ public class TestIk : MonoBehaviour
             newStepLoc = constsNewStep;
 
             Vector3 footPos = Vector3.Lerp(oldStepLoc, newStepLoc, moveLerp);
-            footPos.y += Mathf.Sin(moveLerp * Mathf.PI) * stepHeight;
+            float smoothLerp = Mathf.SmoothStep(0f, 1f, moveLerp);
+
+            float footVal = Mathf.Sin(moveLerp * Mathf.PI) * stepHeight;
+
+            footPos.y += footVal;
+
+            //jiggleScript.height += ((Mathf.Sin(moveLerp * Mathf.PI) - 0.5f) * stepHeight) * jiggleScript.stepHeightStrength;
+
+            float deltaStep = footVal - previousStepVal;
+            jiggleScript.height += deltaStep * jiggleScript.stepHeightStrength;
+            previousStepVal = footVal;
+            //print((Mathf.Sin(moveLerp * Mathf.PI) - 0.5f) * stepHeight);
+
+            //float heightVal = Mathf.Sin(smoothLerp * Mathf.PI) * stepHeight;
+            //BodyBounce(Mathf.Sin(smoothLerp * Mathf.PI) * stepHeight);             BODY BOUNCE HERE
 
             ikTip.transform.position = footPos;
             RotFoot();
@@ -163,16 +189,17 @@ public class TestIk : MonoBehaviour
         else
         {
             //foot stationary
-
+            if (legDown == false) jiggleScript.Jiggle();
             ikTip.transform.position = newStepLoc;
             legDown = true;
+            
         }
     }
 
     void RotFoot()
     {
         Quaternion targetRotation = Quaternion.FromToRotation(foot.transform.up, constsNewStepNorm) * foot.transform.rotation;
-        Vector3 euler = targetRotation.eulerAngles;
+        Vector3 euler = targetRotation.eulerAngles - new Vector3(rotFixParent.transform.eulerAngles.x + 90, 0, 0);
         euler.y = 0;
         newStepRot = Quaternion.Euler(euler);
         foot.transform.localRotation = newStepRot;
@@ -203,4 +230,23 @@ public class TestIk : MonoBehaviour
         }
         
     }
+
+    //void BodyBounce(float value)
+    //{
+    //    Vector3 pos = pelvisParent.transform.localPosition;
+    //    pelvisParent.transform.localPosition = new Vector3(pos.x, value * parentBounceMult, pos.z);
+    //    //pelvisParent.transform.RotateAround(otherLeg.transform.position, transform.up, value * parentBounceMult);
+    //    //float val1 = isLeft ? value : -value;
+    //    //float val2 = jiggleCurve.Evaluate(isLeft ? value : -value);
+    //    pelvisParent.transform.localRotation = Quaternion.Euler(((isLeft ? value : -value) * legLiftTiltMult) - 90f, 90f, 0f);
+    //}
+
+    void LegPointDown()
+    {
+        Quaternion parentRotation = rotFixParent.transform.rotation;
+        Vector3 newRotation = parentRotation.eulerAngles;
+        newRotation.x = -90;
+        rotFixParent.transform.rotation = Quaternion.Euler(newRotation);
+    }
+
 }

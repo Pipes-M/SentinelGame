@@ -27,17 +27,22 @@ public class PlayerScript : MonoBehaviour
     public float camSmoothSpeed = 0.1f;
     public int setFrameRate = 60;
     public float airDrag = 2f;
+    public bool InputsEnabled = true;
+    public GameObject pdaEquipObj;
 
     private Rigidbody rb;
     private Camera playerCamera;
     private float verticalLookRotation = 0f;
-    private float horizontalLookRotation;
+    public float horizontalLookRotation;
     private CapsuleCollider playerCollider;
     private float standHeight;
     private float camStandHeight;
     private bool unCrouch;
     private GameObject grabbedObj;
     private float startDrag;
+    private bool CanMoveMouseInp;
+    private bool pdaFlop;
+    private EquipPda equipPdaScript;
     
 
 
@@ -52,21 +57,27 @@ public class PlayerScript : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            CanMoveMouseInp = true;
         }
         standHeight = playerCollider.height;
         camStandHeight = camAnch.transform.localPosition.y;
         moveSpeed = walkSpeed;
         startDrag = rb.drag;
+        equipPdaScript = pdaEquipObj.GetComponent<EquipPda>();
     }
 
     void Update()
     {
         
+        if (InputsEnabled)
+        {
+            if (CanMoveMouseInp) HandleMouseLook();
+
+            Inputs();
+        }
         
-        HandleMouseLook();
-        Inputs();
         
-        ObjectCarry();
+        //ObjectCarry();
 
         Drag();
         //OnDrawGizmos();
@@ -139,6 +150,30 @@ public class PlayerScript : MonoBehaviour
         {
             Sprint(false);
         }
+        if (Input.GetButtonDown("Interact"))
+        {
+            Interact();
+        }
+        if (Input.GetButtonDown("TacScreen"))
+        {
+            OpenPda();
+        }
+    }
+
+    public void ScreenMouse(bool shouldMouse)
+    {
+        if (shouldMouse)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            CanMoveMouseInp = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            CanMoveMouseInp = true;
+        }
     }
 
     void Drag()
@@ -166,7 +201,7 @@ public class PlayerScript : MonoBehaviour
         return !Physics.CheckSphere(spherePosition, playerCollider.radius, collisionLayers);
     }
 
-    void Crouch()
+    public void Crouch()
     {
         if (!crouched)
         {
@@ -225,10 +260,41 @@ public class PlayerScript : MonoBehaviour
         Debug.DrawRay(ray.origin, ray.direction * interactRange, Color.red);
     }
 
+    void Interact()
+    {
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, interactRange))
+        {
+            print(hit.collider.gameObject);
+            if (hit.collider.gameObject.GetComponent<InteractScript>() != null)
+            {
+                hit.collider.gameObject.GetComponent<InteractScript>().SendInteract();
+            }
+            
+        }
+    }
+
     //void OnDrawGizmos()
     //{
     //    Vector3 spherePosition = transform.position + Vector3.up * (standHeight - crouchHeight);
     //    Gizmos.color = CanStand() ? Color.green : Color.red;
     //    Gizmos.DrawWireSphere(spherePosition, playerCollider.radius);
     //}
+
+    void OpenPda()
+    {
+        if (pdaFlop == false)
+        {
+            pdaFlop = true;
+            ScreenMouse(true);
+            equipPdaScript.ActivatePda(true);
+        }
+        else
+        {
+            pdaFlop = false;
+            ScreenMouse(false);
+            equipPdaScript.ActivatePda(false);
+        }
+    }
 }
