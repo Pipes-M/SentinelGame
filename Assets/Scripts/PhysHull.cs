@@ -29,7 +29,7 @@ public class PhysHull : MonoBehaviour
     void Update()
     {
         //childRb.velocity = parentHullRb.velocity;
-        print(parentHullRb.velocity);
+        //print(parentHullRb.velocity);
 
 
     }

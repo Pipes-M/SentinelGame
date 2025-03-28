@@ -19,7 +19,11 @@ public class MechAi : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = GameManager.Instance.player;
+        if (GameManager.Instance != null && GameManager.Instance.player != null)
+        {
+            player = GameManager.Instance.player;
+        }
+
     }
 
     // Update is called once per frame
@@ -86,6 +90,6 @@ public class MechAi : MonoBehaviour
     public void StateSelect(int index)
     {
         state = index;
-        print(state);
+        //print(state);
     }
 }

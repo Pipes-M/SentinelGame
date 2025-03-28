@@ -38,9 +38,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Distort: 0.12
-    - _GlassThin: 1
-    - _Noise: 46.07
+    - _Distort: 0.13
+    - _GlassThin: 0.69
+    - _Noise: -51.8
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors: []

@@ -84,6 +84,7 @@ public class MechInterior : MonoBehaviour
         gameObject.GetComponent<MechAi>().enabled = true;
         gameObject.GetComponent<CharacterController>().enabled = false;
         gameObject.GetComponent<MechMovement>().enabled = false;
+        //playerScript.StandFromCrouch();
         StartCoroutine(EnableExitAfterDelay(false));
     }
 

@@ -29,7 +29,7 @@ public class VehicleTest : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        print("akldirfughaolirdufghub");
+        //print("akldirfughaolirdufghub");
         if (!isRb) 
         {
             other.transform.parent = gameObject.transform;

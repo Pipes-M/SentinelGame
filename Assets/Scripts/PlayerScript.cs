@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.Image;
 
@@ -29,6 +30,12 @@ public class PlayerScript : MonoBehaviour
     public float airDrag = 2f;
     public bool InputsEnabled = true;
     public GameObject pdaEquipObj;
+    public GameObject flashLight;
+    public GameObject heldObj;
+    public int metalCount;
+    public int plasticCount;
+    public int ammoCount;
+    public GameObject pdaObj;
 
     private Rigidbody rb;
     private Camera playerCamera;
@@ -48,6 +55,7 @@ public class PlayerScript : MonoBehaviour
 
     void Start()
     {
+        GameManager.Instance.player = gameObject;
         //Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody>();
         playerCamera = Camera.main;
@@ -84,7 +92,13 @@ public class PlayerScript : MonoBehaviour
 
         //Application.targetFrameRate = setFrameRate;
 
-        if (Input.GetKeyDown(KeyCode.F)) rb.AddForce(new Vector3 (100f, 10f, 0f), ForceMode.Impulse);
+        //if (Input.GetKeyDown(KeyCode.F)) rb.AddForce(new Vector3 (100f, 10f, 0f), ForceMode.Impulse);
+        //print(IsGrounded());
+    }
+
+    private void Awake()
+    {
+        
     }
 
     private void FixedUpdate()
@@ -158,6 +172,15 @@ public class PlayerScript : MonoBehaviour
         {
             OpenPda();
         }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            FlashLight();
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            //SceneManager.LoadScene("MainMenu");
+            Application.Quit();
+        }
     }
 
     public void ScreenMouse(bool shouldMouse)
@@ -192,7 +215,11 @@ public class PlayerScript : MonoBehaviour
 
     bool IsGrounded()
     {
-        return Physics.Raycast(transform.position, Vector3.down, playerCollider.height / 2 + 0.1f);
+        //return Physics.Raycast(transform.position, Vector3.down, playerCollider.height / 2 + 0.1f);
+
+        Vector3 spherePosition = transform.position + Vector3.down * (standHeight - crouchHeight - 0.2f);
+        //Gizmos.DrawWireSphere(spherePosition, playerCollider.radius);
+        return Physics.CheckSphere(spherePosition, playerCollider.radius, collisionLayers);
     }
 
     bool CanStand()
@@ -215,7 +242,7 @@ public class PlayerScript : MonoBehaviour
         
     }
 
-    void StandFromCrouch()
+    public void StandFromCrouch()
     {
         if (crouched && CanStand())
         {
@@ -266,7 +293,7 @@ public class PlayerScript : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, interactRange))
         {
-            print(hit.collider.gameObject);
+            //print(hit.collider.gameObject);
             if (hit.collider.gameObject.GetComponent<InteractScript>() != null)
             {
                 hit.collider.gameObject.GetComponent<InteractScript>().SendInteract();
@@ -277,9 +304,12 @@ public class PlayerScript : MonoBehaviour
 
     //void OnDrawGizmos()
     //{
-    //    Vector3 spherePosition = transform.position + Vector3.up * (standHeight - crouchHeight);
-    //    Gizmos.color = CanStand() ? Color.green : Color.red;
-    //    Gizmos.DrawWireSphere(spherePosition, playerCollider.radius);
+    //    //Vector3 spherePosition = transform.position + Vector3.up * (standHeight - crouchHeight);
+    //    //Gizmos.color = CanStand() ? Color.green : Color.red;
+    //    //Gizmos.DrawWireSphere(spherePosition, playerCollider.radius);
+
+    //    //Vector3 spherePosition = transform.position + Vector3.down * (standHeight - crouchHeight - 0.2f);
+    //    //Gizmos.DrawWireSphere(spherePosition, playerCollider.radius);
     //}
 
     void OpenPda()
@@ -295,6 +325,25 @@ public class PlayerScript : MonoBehaviour
             pdaFlop = false;
             ScreenMouse(false);
             equipPdaScript.ActivatePda(false);
+        }
+    }
+
+    public void Death()
+    {
+        //SceneManager.LoadScene("MainMenu");
+        Application.Quit();
+        //Destroy(gameObject);
+    }
+
+    void FlashLight()
+    {
+        if (flashLight.activeSelf)
+        {
+            flashLight.SetActive(false);
+        }
+        else
+        {
+            flashLight.SetActive(true);
         }
     }
 }

@@ -46,7 +46,7 @@ public class EquipPda : MonoBehaviour
         else
         {
             PdaActual.SetActive(true);
-            print("alieudrfyhsgaol");
+            //print("alieudrfyhsgaol");
         }
         
     }

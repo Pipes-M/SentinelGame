@@ -34,7 +34,7 @@ public class MechJiggle : MonoBehaviour
     public void Jiggle()
     {
         jiggleTimer = 0f;
-        print("called");
+        //print("called");
     }
 
     void JiggleUpdate()

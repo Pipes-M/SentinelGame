@@ -1,53 +1,82 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Transactions;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class CableDrone : MonoBehaviour
 {
-    public float cableChangeDelay = 2f;
     public GameObject droneBody;
-    public List<GameObject> cables = new List<GameObject>();
-    private int layerToIgnore;
-    private int layerMask;
-
+    public GameObject gunObj;
+    public float visionRange = 20f;
+    public float visionAngle = 60f;
     public NavMeshAgent agent;
     public GameObject point1;
     public GameObject point2;
     public GameObject point3;
     public float patrolCloseDist = 1f;
+    public float followCloseDist = 5f;
+    public GameObject eyeBase;
+    public GameObject eyeBlock;
+    public GameObject metalObj;
+    public GameObject plasticObj;
 
     private int patrolCount;
+    private GameObject playerObj;
+    private int layerToIgnore;
+    private int layerMask;
+    private bool playerInLos;
+    private bool playerInSight;
+    private Gun gunScript;
 
+    private float nextTime = 0f;
+    private float interval = 0.1f;
 
     // Start is called before the first frame update
     void Start()
     {
+        playerObj = GameManager.Instance.player;
         layerToIgnore = LayerMask.NameToLayer("Drone");
         layerMask = ~(1 << layerToIgnore);
-        StartCoroutine(CableDetection());
+        gunScript = gunObj.GetComponent<Gun>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Patrol();
-    }
-
-    IEnumerator CableDetection()
-    {
-        foreach (GameObject obj in cables)
+        if (playerObj == null)
         {
-            print("aergar");
-            Ray ray = new Ray(droneBody.transform.position, (obj.transform.position - droneBody.transform.position).normalized);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit, 10000, layerMask))
+            playerObj = GameManager.Instance.player;
+        }
+
+        Vector3 directionToPlayer = (playerObj.transform.position - transform.position).normalized;
+        if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, 10000))
+        {
+            if (hit.collider.gameObject == playerObj)
             {
-                obj.GetComponent<Cable>().dest = hit.point;
+                playerInLos = true;
+            }
+            else
+            {
+                playerInLos = false;
             }
         }
-        yield return new WaitForSeconds(cableChangeDelay);
-        StartCoroutine(CableDetection());
+
+        if (playerInSight)
+        {
+            Follow();
+            if (Time.time >= nextTime)
+            {
+                nextTime = Time.time + interval;
+                Shoot();
+            }
+            
+        }
+        else
+        {
+            Patrol();
+        }
+        //EyeLook();
     }
 
     void Patrol()
@@ -71,6 +100,86 @@ public class CableDrone : MonoBehaviour
                 agent.SetDestination(point3.transform.position);
                 break;
 
+        }
+    }
+
+    void Follow()
+    {
+        if (Vector3.Distance(playerObj.transform.position, transform.position) <= followCloseDist)
+        {
+            agent.ResetPath();
+        }
+        else
+        {
+            agent.SetDestination(playerObj.transform.position);
+        }
+    }
+
+    bool CanSeePlayer()
+    {
+        Vector3 directionToPlayer = (playerObj.transform.position - transform.position).normalized;
+        float distanceToPlayer = Vector3.Distance(transform.position, playerObj.transform.position);
+
+        if (distanceToPlayer > visionRange)
+            return false;
+
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+        if (angleToPlayer > visionAngle)
+            return false;
+
+        if (!Physics.Raycast(transform.position, directionToPlayer, distanceToPlayer))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player") && playerInLos)
+        {
+            playerInSight = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInSight = false;
+        }
+    }
+
+    void Shoot()
+    {
+        
+        gunObj.transform.LookAt(playerObj.transform);
+        gunScript.Fire();
+        
+    }
+
+    public void Death()
+    {
+        Instantiate(metalObj, transform.position, Quaternion.LookRotation(transform.forward));
+        Instantiate(metalObj, transform.position, Quaternion.LookRotation(transform.forward));
+        Instantiate(plasticObj, transform.position, Quaternion.LookRotation(transform.forward));
+        Destroy(gameObject);
+    }
+
+    void EyeLook()
+    {
+        if (playerInSight)
+        {
+            eyeBase.transform.LookAt(new Vector3(playerObj.transform.position.x, transform.position.y, playerObj.transform.position.z), Vector3.up);
+            eyeBlock.transform.LookAt(new Vector3(transform.position.x, playerObj.transform.position.y, transform.position.z), Vector3.up);
+        }
+        else
+        {
+            eyeBase.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            eyeBlock.transform.localRotation = Quaternion.Euler(0, 0, 0);
         }
     }
 }

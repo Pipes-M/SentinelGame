@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
-using UnityEditorInternal;
 using UnityEngine;
 
 
@@ -237,7 +236,7 @@ public class TestIk : MonoBehaviour
     //    pelvisParent.transform.localPosition = new Vector3(pos.x, value * parentBounceMult, pos.z);
     //    //pelvisParent.transform.RotateAround(otherLeg.transform.position, transform.up, value * parentBounceMult);
     //    //float val1 = isLeft ? value : -value;
-    //    //float val2 = jiggleCurve.Evaluate(isLeft ? value : -value);
+    //    float val2 = jiggleCurve.Evaluate(isLeft ? value : -value);
     //    pelvisParent.transform.localRotation = Quaternion.Euler(((isLeft ? value : -value) * legLiftTiltMult) - 90f, 90f, 0f);
     //}
 
