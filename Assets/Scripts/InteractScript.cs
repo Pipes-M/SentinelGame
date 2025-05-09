@@ -1,35 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class InteractScript : MonoBehaviour
 {
-    public string FuncName = ("Interacted");
-    public bool CallParent;
+    public UnityEvent onInteract;
     
     
-    // Start is called before the first frame update
-    void Start()
+    public void Interact()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void SendInteract()
-    {
-        if (CallParent)
-        {
-            gameObject.SendMessageUpwards(FuncName);
-        }
-        else
-        {
-            gameObject.SendMessage(FuncName);
-        }
-        
+        onInteract.Invoke();
     }
 }

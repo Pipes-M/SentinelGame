@@ -8,9 +8,11 @@ public class Gun : MonoBehaviour
     public GameObject firePoint;
     private bool invalidBullet;
     private Rigidbody rb;
+    public ItemData bulletData;
 
     public bool playerGun;
     private PlayerScript playerScript;
+    private InventoryGrid playerInvScript;
     
     // Start is called before the first frame update
     void Start()
@@ -18,6 +20,7 @@ public class Gun : MonoBehaviour
         BulletValidity();
         rb = GetComponent<Rigidbody>();
         playerScript = GameManager.Instance.player.GetComponent<PlayerScript>();
+        playerInvScript = playerScript.playerInv.GetComponent<InventoryGrid>();
     }
 
     // Update is called once per frame
@@ -51,17 +54,16 @@ public class Gun : MonoBehaviour
 
     public void Fire()
     {
-        if (!invalidBullet && !playerGun)
+        if (!invalidBullet && !playerGun) //is ai using gun
         {
             GameObject spawnedBullet = Instantiate(bulletPrefab, firePoint.transform.position, Quaternion.LookRotation(transform.forward));
             //spawnedBullet.GetComponent<Projectile>().owner = transform.parent.gameObject;
-            
+
         }
-        else if (playerScript.ammoCount > 0)
+        else if (!invalidBullet && playerInvScript.UseItem(bulletData))
         {
             GameObject spawnedBullet = Instantiate(bulletPrefab, firePoint.transform.position, Quaternion.LookRotation(transform.forward));
             //spawnedBullet.GetComponent<Projectile>().owner = transform.parent.gameObject;
-            if (playerGun) playerScript.ammoCount--;
         }
     }
 

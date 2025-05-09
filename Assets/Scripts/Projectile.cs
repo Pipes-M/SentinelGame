@@ -22,7 +22,7 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        //print(collision.gameObject);
+        print(collision.gameObject);
         if (collision.gameObject.GetComponent<Health>() != null) // && collision.gameObject != owner
         {
             collision.gameObject.GetComponent<Health>().Damage(damage);

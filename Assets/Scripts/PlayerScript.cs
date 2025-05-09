@@ -36,6 +36,9 @@ public class PlayerScript : MonoBehaviour
     public int plasticCount;
     public int ammoCount;
     public GameObject pdaObj;
+    public GameObject playerInv;
+    public GameObject playerHudObj;
+    public GameObject ammoPref;
 
     private Rigidbody rb;
     private Camera playerCamera;
@@ -49,8 +52,11 @@ public class PlayerScript : MonoBehaviour
     private float startDrag;
     private bool CanMoveMouseInp;
     private bool pdaFlop;
+    private bool invFlop;
     private EquipPda equipPdaScript;
-    
+    private InventoryGrid playerInvScript;
+    private PlayerHud playerHudScript;
+    private Vector3 invStartPos;
 
 
     void Start()
@@ -72,6 +78,10 @@ public class PlayerScript : MonoBehaviour
         moveSpeed = walkSpeed;
         startDrag = rb.drag;
         equipPdaScript = pdaEquipObj.GetComponent<EquipPda>();
+        playerInvScript = playerInv.GetComponent<InventoryGrid>();
+        playerHudScript = playerHudObj.GetComponent<PlayerHud>();
+        invStartPos = playerInv.transform.localPosition;
+        playerInv.transform.localPosition += new Vector3(0, 0, -1.5f);
     }
 
     void Update()
@@ -176,10 +186,18 @@ public class PlayerScript : MonoBehaviour
         {
             FlashLight();
         }
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            OpenInv();
+        }
+            if (Input.GetKeyDown(KeyCode.Escape))
         {
             //SceneManager.LoadScene("MainMenu");
             Application.Quit();
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            CraftAmmo();
         }
     }
 
@@ -293,10 +311,15 @@ public class PlayerScript : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, interactRange))
         {
-            //print(hit.collider.gameObject);
-            if (hit.collider.gameObject.GetComponent<InteractScript>() != null)
+            InteractScript interactable = hit.collider.GetComponent<InteractScript>();
+            Item itemScript = hit.collider.gameObject.GetComponent<Item>();
+            if (itemScript != null)
             {
-                hit.collider.gameObject.GetComponent<InteractScript>().SendInteract();
+                playerInvScript.AddItem(hit.collider.gameObject);
+            }
+            else if (interactable != null)
+            {
+                interactable.Interact();
             }
             
         }
@@ -328,6 +351,23 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    void OpenInv()
+    {
+        if (invFlop == false)
+        {
+            invFlop = true;
+            ScreenMouse(true);
+            EquipInv(true);
+        }
+        else
+        {
+            invFlop = false;
+            ScreenMouse(false);
+            equipPdaScript.ActivatePda(false);
+            EquipInv(false);
+        }
+    }
+
     public void Death()
     {
         //SceneManager.LoadScene("MainMenu");
@@ -344,6 +384,26 @@ public class PlayerScript : MonoBehaviour
         else
         {
             flashLight.SetActive(true);
+        }
+    }
+
+    void EquipInv(bool open)
+    {
+        if (open)
+        {
+            playerInv.transform.localPosition = invStartPos;
+        }
+        else
+        {
+            playerInv.transform.localPosition = invStartPos + new Vector3(0, 0, -1.5f);
+        }
+    }
+
+    void CraftAmmo()
+    {
+        if (playerInvScript.CraftAmmo())
+        {
+            Instantiate(ammoPref, transform.position, Quaternion.identity);
         }
     }
 }

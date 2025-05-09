@@ -11,6 +11,7 @@ public class MechInterior : MonoBehaviour
     public GameObject chair;
     public GameObject mechRoom;
     public float seatHeight;
+    public GameObject camAnchObj;
     private GameObject player;
     private PlayerScript playerScript;
     private bool shouldRot;
@@ -75,6 +76,8 @@ public class MechInterior : MonoBehaviour
         gameObject.GetComponent<MechAi>().enabled = false;
         gameObject.GetComponent<CharacterController>().enabled = true;
         gameObject.GetComponent<MechMovement>().enabled = true;
+
+        Camera.main.GetComponent<CamAttach>().MoveCam(false, camAnchObj);
     }
     void ChairOut()
     {
@@ -85,6 +88,7 @@ public class MechInterior : MonoBehaviour
         gameObject.GetComponent<CharacterController>().enabled = false;
         gameObject.GetComponent<MechMovement>().enabled = false;
         //playerScript.StandFromCrouch();
+        Camera.main.GetComponent<CamAttach>().MoveCam(true, null);
         StartCoroutine(EnableExitAfterDelay(false));
     }
 

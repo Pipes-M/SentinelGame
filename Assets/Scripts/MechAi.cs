@@ -5,13 +5,19 @@ using UnityEngine.AI;
 
 public class MechAi : MonoBehaviour
 {
+    public GameObject targ;
+    public GameObject forwardTarg;
+    public float lookAtTurnSpeed = 5f;
     public NavMeshAgent agent;
     public GameObject point1;
     public GameObject point2;
     public GameObject point3;
     public float patrolCloseDist = 1f;
     public float followCloseDist = 5f;
-    
+    public GameObject mechPelivsParent;
+    public bool alwaysLook;
+
+
     public int state;
 
     private GameObject player;
@@ -31,7 +37,7 @@ public class MechAi : MonoBehaviour
     {
         //Patrol();
         //Follow();
-
+        if (alwaysLook) LookTowards(targ);
         switch (state)
         {
             case 0:
@@ -91,5 +97,29 @@ public class MechAi : MonoBehaviour
     {
         state = index;
         //print(state);
+    }
+
+    void LookTowards(GameObject target)
+    {
+        mechPelivsParent.transform.rotation = Quaternion.Euler(0, Mathf.LerpAngle(mechPelivsParent.transform.eulerAngles.y,
+            LookAt(target != null ? target : forwardTarg), lookAtTurnSpeed * Time.deltaTime), 0);
+    }
+
+    float LookAt(GameObject target)
+    {
+        Vector3 direction = target.transform.position - transform.position;
+        direction.y = 0; // keep it horizontal
+
+        if (direction.sqrMagnitude > 0.001f) // avoid division by zero
+        {
+            // Calculate the angle in degrees between forward and target direction
+
+
+            // Apply rotation around Y axis
+            //MechPelivs.transform.eulerAngles = new Vector3(-90, 90, angle);
+
+        }
+        float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+        return angle;
     }
 }
